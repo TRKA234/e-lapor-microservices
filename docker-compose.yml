@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  # 1. AUTH SERVICE (Golang)
+  auth-service:
+    build: ./auth-service
+    ports: ["8081:8080"]
+    env_file: ./auth-service/.env
+    depends_on: [auth-db]
+
+  auth-db:
+    image: postgres:13
+    environment:
+      POSTGRES_USER: user_auth
+      POSTGRES_PASSWORD: pass_auth
+      POSTGRES_DB: db_auth
+
+  # 2. REPORT SERVICE (PHP)
+  report-service:
+    build: ./report-service
+    ports: ["8082:80"]
+    env_file: ./report-service/.env
+    depends_on: [report-db]
+
+  report-db:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: db_report
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    ports: ["8080:80"]
+    environment:
+      PMA_HOST: report-db
+
+  # 3. DISCUSSION SERVICE (Node.js)
+  discussion-service:
+    build: ./discussion-service
+    ports: ["8083:3000"]
+    env_file: ./discussion-service/.env
+    depends_on: [discussion-db]
+
+  discussion-db:
+    image: mongo:latest
+
+  # 4. STATS SERVICE (Python)
+  stats-service:
+    build: ./stats-service
+    ports: ["8084:5000"]
+    env_file: ./stats-service/.env
+    depends_on: [stats-db]
+
+  stats-db:
+    image: redis:alpine
